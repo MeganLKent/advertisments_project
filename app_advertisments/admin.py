@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import Advertisment # импортирую свою модель
 # класс обьекта модели для подсказки
 from django.db.models.query import QuerySet
+from django.utils.safestring import mark_safe 
 
 # py manage.py createsuperuser - создания аккаунта супер пользователя
 # пароль не отображается
@@ -11,13 +12,13 @@ from django.db.models.query import QuerySet
 
 # класс для кастомизации модели в админке
 class AdvertisementsAdmin(admin.ModelAdmin):
-    list_display = ['id','title','description','price','auction', 'created_date', 'update_date'] # столбцы для отображения в таблице
+    list_display = ['id','user', 'title','description','price', 'created_date', 'update_date', 'auction', 'get_html_image'] # столбцы для отображения в таблице
     list_filter = ['auction', 'created_at', 'price']
     actions = ['make_action_as_false', 'make_action_as_true']
     fieldsets = (
         ('Общие', { # блок 1 
             "fields": (
-                'title','description'    # поля блока
+                'title','description', 'user', 'image'   # поля блока
             ),
         }),
         ('Финансы', { # блок 2
@@ -28,8 +29,13 @@ class AdvertisementsAdmin(admin.ModelAdmin):
         })
     )
     
-
-
+    def get_html_image (self, object):
+        if object.image:
+            return mark_safe(f"<img src='{object.image.url}' width=100>")
+    
+    get_html_image.short_description = 'мини-изображение'
+    
+    
     @admin.action(description='Убрать возможность торга')
     def make_action_as_false(self, request, queryset:QuerySet):
         queryset.update(auction = False) # обновить значение auction у выбранных записей на False
